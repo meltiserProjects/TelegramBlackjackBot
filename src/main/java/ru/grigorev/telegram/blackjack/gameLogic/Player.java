@@ -1,14 +1,9 @@
 package ru.grigorev.telegram.blackjack.gameLogic;
 
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import ru.grigorev.telegram.blackjack.Bot;
-
 import java.util.ArrayList;
 import java.util.Random;
 
 public class Player {
-    private Bot telegramBot;
-
     private int[] cards = {
             2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 11,
             2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 11,
@@ -16,13 +11,8 @@ public class Player {
             2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 11};
     private ArrayList<Integer> hand = new ArrayList<>();
 
-    public Player(Bot bot) {
-        telegramBot = bot;
+    public Player() {
         initHand();
-    }
-
-    public Bot getTelegramBot() {
-        return telegramBot;
     }
 
     public void initHand() {
@@ -61,12 +51,12 @@ public class Player {
         return hand;
     }
 
-    public void printHand() throws TelegramApiException {
+    public String getStringHand() {
         StringBuilder sb = new StringBuilder("Your cards are: ");
         for (Integer integer : hand) {
             sb.append(integer).append(" ");
         }
         sb.append("\nSum is: ").append(getSumOfHand());
-        telegramBot.sendMessage(sb.toString());
+        return sb.toString();
     }
 }

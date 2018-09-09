@@ -5,38 +5,37 @@ import ru.grigorev.telegram.blackjack.Bot;
 import ru.grigorev.telegram.blackjack.Commands;
 
 public class Game {
-    private static Player player;
-    private static BotPlayer botPlayer;
-    private static Bot telegramBot;
-    private static boolean isRunning;
-    private static int botsWin;
-    private static int playersWin;
+    private Player player;
+    private Player botPlayer;
+    private Bot telegramBot;
+    private boolean isRunning;
+    private int botsWin;
+    private int playersWin;
 
-    public static void init(Bot bot) throws TelegramApiException {
+    public void init(Bot bot) throws TelegramApiException {
         telegramBot = bot;
-        player = new Player(bot);
-        botPlayer = new BotPlayer(bot);
+        player = new Player();
+        botPlayer = new BotPlayer();
         isRunning = true;
 
-        telegramBot.sendMessage("Welcome to blackjack!");
-        player.printHand();
-        botPlayer.printHand();
+        printPlayersHand(player);
+        printPlayersHand(botPlayer);
         telegramBot.sendMessageWithTwoButtons("/hit or /stand?",
                 "Hit!", "Stand!",
                 Commands.HIT, Commands.STAND);
     }
 
-    public static void hit() throws TelegramApiException {
+    public void hit() throws TelegramApiException {
         player.appendCardInHand();
         player.replaceAceCardIfBusted();
-        player.printHand();
+        printPlayersHand(player);
         if (player.isBustedHand()) {
             isRunning = false;
             printResults();
         }
     }
 
-    public static void stand() throws TelegramApiException {
+    public void stand() throws TelegramApiException {
         while (botPlayer.getSumOfHand() <= player.getSumOfHand() && botPlayer.getSumOfHand() != 21) {
             //a little delay
             try {
@@ -46,13 +45,13 @@ public class Game {
             }
             botPlayer.appendCardInHand();
             botPlayer.replaceAceCardIfBusted();
-            botPlayer.printHand();
+            printPlayersHand(botPlayer);
         }
         isRunning = false;
         printResults();
     }
 
-    public static void printResults() throws TelegramApiException {
+    public void printResults() throws TelegramApiException {
         if (player.isBustedHand()) {
             telegramBot.sendMessage("\nBusted!\nComputer won!");
             botsWin++;
@@ -64,16 +63,18 @@ public class Game {
             botsWin++;
         } else if (player.getSumOfHand() == botPlayer.getSumOfHand())
             telegramBot.sendMessage("Sums are equal\nIt's a draw!");
-        telegramBot.sendMessageWithButton("Type /start to start the game!",
-                "Start!",
-                Commands.START);
+        telegramBot.sendNewGameButton();
     }
 
-    public static boolean isRunning() {
+    public boolean isRunning() {
         return isRunning;
     }
 
-    public static void sendStat() throws TelegramApiException {
+    public void sendStat() throws TelegramApiException {
         telegramBot.sendMessage("Players win: " + playersWin + ", Bots win: " + botsWin);
+    }
+
+    public void printPlayersHand(Player player) throws TelegramApiException {
+        telegramBot.sendMessage(player.getStringHand());
     }
 }

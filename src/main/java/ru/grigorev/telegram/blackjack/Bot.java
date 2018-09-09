@@ -7,6 +7,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import org.telegram.telegrambots.meta.logging.BotLogger;
 import ru.grigorev.telegram.blackjack.gameLogic.Game;
 
 import java.util.ArrayList;
@@ -19,14 +20,13 @@ import static java.lang.Math.toIntExact;
  * @author Dmitriy Grigorev
  */
 public class Bot extends TelegramLongPollingBot {
+    private static final String LOGTAG = "BOT";
     private Long chatId;
     private Map<Long, Game> usersMap;
     private Game game;
 
     @Override
     public void onUpdateReceived(Update update) {
-        game = new Game();
-        setChatId(update.getMessage().getChatId());
         // check if the update has a message and the message has text
         if (update.hasMessage() && update.getMessage().hasText()) {
             handleMessagesFromClient(update);
@@ -38,55 +38,54 @@ public class Bot extends TelegramLongPollingBot {
     private void handleCallBackQueryFromClient(Update update) {
         long message_id = update.getCallbackQuery().getMessage().getMessageId();
         try {
-            if (update.getCallbackQuery().getData().equals(Commands.START)) {
-                sendMessageInsteadButton("Let's get started!", message_id);
-                Game.init(this);
+            if (update.getCallbackQuery().getData().equals(Commands.NEW_GAME)) {
+                //sendMessageInsteadButton("Game is on!", message_id);
+                sendMessage("Game is on!");
+                game.init(this);
             }
             if (update.getCallbackQuery().getData().equals(Commands.HIT)) {
-                if (Game.isRunning()) Game.hit();
-                else sendMessageWithButton("Type /start to start the game!",
-                        "Start!",
-                        Commands.START);
+                if (game.isRunning()) game.hit();
+                else sendNewGameButton();
             }
             if (update.getCallbackQuery().getData().equals(Commands.STAND)) {
-                if (Game.isRunning()) Game.stand();
-                else sendMessageWithButton("Type /start to start the game!",
-                        "Start!",
-                        Commands.START);
+                if (game.isRunning()) game.stand();
+                else sendNewGameButton();
             }
         } catch (TelegramApiException e) {
-            e.printStackTrace();
+            BotLogger.error(LOGTAG, e);
         }
     }
 
     private void handleMessagesFromClient(Update update) {
-        String recievedText = update.getMessage().getText();
+        setChatId(update.getMessage().getChatId()); // ???
+        String receivedText = update.getMessage().getText();
         try {
             if (update.getMessage().getText().equals(Commands.START)) {
-                Game.init(this);
+                this.game = new Game();
+                sendMessageWithButton("Hello and welcome to BlackJack!" +
+                                " Type /newgame for a new game or simply push the button!",
+                        "New game!",
+                        Commands.NEW_GAME);
             }
 
-            if (recievedText.equals(Commands.NEW_GAME)) {
-                usersMap.put(update.getMessage().getChatId(), new Game());
+            if (receivedText.equals(Commands.NEW_GAME)) {
+                game.init(this);
+                //usersMap.put(update.getMessage().getChatId(), game);
             }
 
             if (update.getMessage().getText().equals(Commands.HIT)) {
-                if (Game.isRunning()) Game.hit();
-                else sendMessageWithButton("Type /start to start the game!",
-                        "Start!",
-                        Commands.START);
+                if (game.isRunning()) game.hit();
+                else sendNewGameButton();
             }
             if (update.getMessage().getText().equals(Commands.STAND)) {
-                if (Game.isRunning()) Game.stand();
-                else sendMessageWithButton("Type /start to start the game!",
-                        "Start!",
-                        Commands.START);
+                if (game.isRunning()) game.stand();
+                else sendNewGameButton();
             }
             if (update.getMessage().getText().equals(Commands.STAT)) {
-                Game.sendStat();
+                game.sendStat();
             }
         } catch (TelegramApiException e) {
-            e.printStackTrace();
+            BotLogger.error(LOGTAG, e);
         }
     }
 
@@ -140,8 +139,10 @@ public class Bot extends TelegramLongPollingBot {
         execute(new_message);
     }
 
-    public void sendPrivateMessage() {
-
+    public void sendNewGameButton() throws TelegramApiException {
+        sendMessageWithButton("One more time?",
+                "New Game!",
+                Commands.NEW_GAME);
     }
 
     public Long getChatId() {
