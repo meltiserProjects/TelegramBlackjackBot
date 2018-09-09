@@ -20,10 +20,13 @@ import static java.lang.Math.toIntExact;
  */
 public class Bot extends TelegramLongPollingBot {
     private Long chatId;
-    private Map<Long, String> usersMap;
+    private Map<Long, Game> usersMap;
+    private Game game;
 
     @Override
     public void onUpdateReceived(Update update) {
+        game = new Game();
+        setChatId(update.getMessage().getChatId());
         // check if the update has a message and the message has text
         if (update.hasMessage() && update.getMessage().hasText()) {
             handleMessagesFromClient(update);
@@ -57,11 +60,16 @@ public class Bot extends TelegramLongPollingBot {
     }
 
     private void handleMessagesFromClient(Update update) {
-        setChatId(update.getMessage().getChatId());
+        String recievedText = update.getMessage().getText();
         try {
             if (update.getMessage().getText().equals(Commands.START)) {
                 Game.init(this);
             }
+
+            if (recievedText.equals(Commands.NEW_GAME)) {
+                usersMap.put(update.getMessage().getChatId(), new Game());
+            }
+
             if (update.getMessage().getText().equals(Commands.HIT)) {
                 if (Game.isRunning()) Game.hit();
                 else sendMessageWithButton("Type /start to start the game!",
