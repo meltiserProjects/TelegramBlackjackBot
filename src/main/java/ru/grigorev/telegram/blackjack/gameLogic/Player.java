@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.Random;
 
 public class Player {
-    private static Bot telegramBot;
+    private Bot telegramBot;
 
     private int[] cards = {
             2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 11,
@@ -21,7 +21,7 @@ public class Player {
         initHand();
     }
 
-    public static Bot getTelegramBot() {
+    public Bot getTelegramBot() {
         return telegramBot;
     }
 

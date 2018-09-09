@@ -11,6 +11,7 @@ import ru.grigorev.telegram.blackjack.gameLogic.Game;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static java.lang.Math.toIntExact;
 
@@ -19,56 +20,65 @@ import static java.lang.Math.toIntExact;
  */
 public class Bot extends TelegramLongPollingBot {
     private Long chatId;
+    private Map<Long, String> usersMap;
 
     @Override
     public void onUpdateReceived(Update update) {
         // check if the update has a message and the message has text
         if (update.hasMessage() && update.getMessage().hasText()) {
-            setChatId(update.getMessage().getChatId());
-            try {
-                if (update.getMessage().getText().equals(Commands.START)) {
-                    Game.init(this);
-                }
-                if (update.getMessage().getText().equals(Commands.HIT)) {
-                    if (Game.isRunning()) Game.hit();
-                    else sendMessageWithButton("Type /start to start the game!",
-                            "Start!",
-                            Commands.START);
-                }
-                if (update.getMessage().getText().equals(Commands.STAND)) {
-                    if (Game.isRunning()) Game.stand();
-                    else sendMessageWithButton("Type /start to start the game!",
-                            "Start!",
-                            Commands.START);
-                }
-                if (update.getMessage().getText().equals(Commands.STAT)) {
-                    Game.sendStat();
-                }
-            } catch (TelegramApiException e) {
-                e.printStackTrace();
-            }
+            handleMessagesFromClient(update);
         } else if (update.hasCallbackQuery()) {
-            long message_id = update.getCallbackQuery().getMessage().getMessageId();
-            try {
-                if (update.getCallbackQuery().getData().equals(Commands.START)) {
-                    sendMessageInsteadButton("Let's get started!", message_id);
-                    Game.init(this);
-                }
-                if (update.getCallbackQuery().getData().equals(Commands.HIT)) {
-                    if (Game.isRunning()) Game.hit();
-                    else sendMessageWithButton("Type /start to start the game!",
-                            "Start!",
-                            Commands.START);
-                }
-                if (update.getCallbackQuery().getData().equals(Commands.STAND)) {
-                    if (Game.isRunning()) Game.stand();
-                    else sendMessageWithButton("Type /start to start the game!",
-                            "Start!",
-                            Commands.START);
-                }
-            } catch (TelegramApiException e) {
-                e.printStackTrace();
+            handleCallBackQueryFromClient(update);
+        }
+    }
+
+    private void handleCallBackQueryFromClient(Update update) {
+        long message_id = update.getCallbackQuery().getMessage().getMessageId();
+        try {
+            if (update.getCallbackQuery().getData().equals(Commands.START)) {
+                sendMessageInsteadButton("Let's get started!", message_id);
+                Game.init(this);
             }
+            if (update.getCallbackQuery().getData().equals(Commands.HIT)) {
+                if (Game.isRunning()) Game.hit();
+                else sendMessageWithButton("Type /start to start the game!",
+                        "Start!",
+                        Commands.START);
+            }
+            if (update.getCallbackQuery().getData().equals(Commands.STAND)) {
+                if (Game.isRunning()) Game.stand();
+                else sendMessageWithButton("Type /start to start the game!",
+                        "Start!",
+                        Commands.START);
+            }
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void handleMessagesFromClient(Update update) {
+        setChatId(update.getMessage().getChatId());
+        try {
+            if (update.getMessage().getText().equals(Commands.START)) {
+                Game.init(this);
+            }
+            if (update.getMessage().getText().equals(Commands.HIT)) {
+                if (Game.isRunning()) Game.hit();
+                else sendMessageWithButton("Type /start to start the game!",
+                        "Start!",
+                        Commands.START);
+            }
+            if (update.getMessage().getText().equals(Commands.STAND)) {
+                if (Game.isRunning()) Game.stand();
+                else sendMessageWithButton("Type /start to start the game!",
+                        "Start!",
+                        Commands.START);
+            }
+            if (update.getMessage().getText().equals(Commands.STAT)) {
+                Game.sendStat();
+            }
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
         }
     }
 
@@ -109,20 +119,21 @@ public class Bot extends TelegramLongPollingBot {
     public void sendMessage(String message) throws TelegramApiException {
         SendMessage sendMessageObj = new SendMessage() // Create a SendMessage object with mandatory fields
                 .setChatId(chatId)
-                .setText(message); //update.getMessage().getText()
+                .setText(message);  //update.getMessage().getText()
+        //sendMessageObj.setReplyToMessageId(sendMessageObj.getReplyToMessageId()); //
         execute(sendMessageObj);
     }
 
-    public void sendMessageInsteadButton(String message, long message_id) {
+    public void sendMessageInsteadButton(String message, long message_id) throws TelegramApiException {
         EditMessageText new_message = new EditMessageText()
                 .setChatId(chatId)
                 .setMessageId(toIntExact(message_id))
                 .setText(message);
-        try {
-            execute(new_message);
-        } catch (TelegramApiException e) {
-            e.printStackTrace();
-        }
+        execute(new_message);
+    }
+
+    public void sendPrivateMessage() {
+
     }
 
     public Long getChatId() {
