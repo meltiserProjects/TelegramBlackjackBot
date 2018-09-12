@@ -6,3 +6,5 @@
 *.bat
 *.lst
 Security.java
+*.log
+*.lck
