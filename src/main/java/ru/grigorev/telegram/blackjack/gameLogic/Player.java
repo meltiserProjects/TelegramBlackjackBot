@@ -38,7 +38,10 @@ public class Player {
     public void replaceAceCardIfBusted() {
         if (isBustedHand()) {
             for (int i = 0; i < hand.size(); i++) {
-                if (hand.get(i) == 11) hand.set(i, 1);
+                if (hand.get(i) == 11) {
+                    hand.set(i, 1);
+                    break;
+                }
             }
         }
     }

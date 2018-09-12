@@ -23,8 +23,8 @@ import static java.lang.Math.toIntExact;
 public class Bot extends TelegramLongPollingBot {
     private static final String LOGTAG = "BOT";
     private Long chatId;
-    private Map<Long, Game> usersMap = new HashMap<>();
     private Game game;
+    private Map<Long, Game> userGameMap = new HashMap<>();
 
     @Override
     public void onUpdateReceived(Update update) {
@@ -38,26 +38,18 @@ public class Bot extends TelegramLongPollingBot {
 
     private void handleCallBackQueryFromClient(Update update) {
         setChatId(update.getCallbackQuery().getMessage().getChatId());
-        if (usersMap.containsKey(chatId)) {
-            this.game = usersMap.get(chatId);
-        } else {
-            Game gameForPlayer = new Game();
-            usersMap.put(update.getMessage().getChatId(), gameForPlayer);
-            this.game = gameForPlayer;
-        }
-        long message_id = update.getCallbackQuery().getMessage().getMessageId();
+        checkAndInitGameForUser();
+        String receivedCallbackQuery = update.getCallbackQuery().getData();
         try {
-            if (update.getCallbackQuery().getData().equals(Commands.NEW_GAME)) {
-                //sendMessageInsteadButton("Game is on!", message_id);
-                if (game == null) sendMessage("Type /start for a new game!");
+            if (receivedCallbackQuery.equals(Commands.NEW_GAME)) {
                 sendMessage("Game is on!");
                 game.init(this);
             }
-            if (update.getCallbackQuery().getData().equals(Commands.HIT)) {
+            if (receivedCallbackQuery.equals(Commands.HIT)) {
                 if (game.isRunning()) game.hit();
                 else sendNewGameButton();
             }
-            if (update.getCallbackQuery().getData().equals(Commands.STAND)) {
+            if (receivedCallbackQuery.equals(Commands.STAND)) {
                 if (game.isRunning()) game.stand();
                 else sendNewGameButton();
             }
@@ -67,40 +59,43 @@ public class Bot extends TelegramLongPollingBot {
     }
 
     private void handleMessagesFromClient(Update update) {
-        setChatId(update.getMessage().getChatId()); // ???
-        if (usersMap.containsKey(chatId)) {
-            this.game = usersMap.get(chatId);
-        } else {
-            Game gameForPlayer = new Game();
-            usersMap.put(update.getMessage().getChatId(), gameForPlayer);
-            this.game = gameForPlayer;
-        }
+        setChatId(update.getMessage().getChatId());
+        checkAndInitGameForUser();
         String receivedText = update.getMessage().getText();
         try {
-            if (update.getMessage().getText().equals(Commands.START)) {
+            if (receivedText.equals(Commands.START)) {
                 sendMessageWithButton("Hello and welcome to BlackJack!" +
                                 " Type /newgame for a new game or simply push the button!",
                         "New game!",
                         Commands.NEW_GAME);
             }
-
             if (receivedText.equals(Commands.NEW_GAME)) {
-                if (game == null) sendMessage("Type /start for a new game!");
+                sendMessage("Game is on!");
                 game.init(this);
             }
-            if (update.getMessage().getText().equals(Commands.HIT)) {
+            if (receivedText.equals(Commands.HIT)) {
                 if (game.isRunning()) game.hit();
                 else sendNewGameButton();
             }
-            if (update.getMessage().getText().equals(Commands.STAND)) {
+            if (receivedText.equals(Commands.STAND)) {
                 if (game.isRunning()) game.stand();
                 else sendNewGameButton();
             }
-            if (update.getMessage().getText().equals(Commands.STAT)) {
+            if (receivedText.equals(Commands.STAT)) {
                 game.sendStat();
             }
         } catch (TelegramApiException e) {
             BotLogger.error(LOGTAG, e);
+        }
+    }
+
+    private void checkAndInitGameForUser() {
+        if (userGameMap.containsKey(chatId)) {
+            this.game = userGameMap.get(chatId);
+        } else {
+            Game gameForPlayer = new Game();
+            userGameMap.put(chatId, gameForPlayer);
+            this.game = gameForPlayer;
         }
     }
 
@@ -112,17 +107,15 @@ public class Bot extends TelegramLongPollingBot {
         List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
         List<InlineKeyboardButton> rowInline = new ArrayList<>();
         rowInline.add(new InlineKeyboardButton().setText(buttonName).setCallbackData(callback));
-        // Set the keyboard to the markup
-        rowsInline.add(rowInline);
-        // Add it to the message
-        markupInline.setKeyboard(rowsInline);
+        rowsInline.add(rowInline); // Set the keyboard to the markup
+        markupInline.setKeyboard(rowsInline); // Add it to the message
         sMessageObjButton.setReplyMarkup(markupInline);
         execute(sMessageObjButton); // Sending our message object to user
     }
 
     public void sendMessageWithTwoButtons(String message, String buttonName1, String buttonName2,
                                           String callBack1, String callback2) throws TelegramApiException {
-        SendMessage sMessageObjButton = new SendMessage() // Create a message object object
+        SendMessage sMessageObjButton = new SendMessage()
                 .setChatId(chatId)
                 .setText(message);
         InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
@@ -130,26 +123,23 @@ public class Bot extends TelegramLongPollingBot {
         List<InlineKeyboardButton> rowInline = new ArrayList<>();
         rowInline.add(new InlineKeyboardButton().setText(buttonName1).setCallbackData(callBack1));
         rowInline.add(new InlineKeyboardButton().setText(buttonName2).setCallbackData(callback2));
-        // Set the keyboard to the markup
         rowsInline.add(rowInline);
-        // Add it to the message
         markupInline.setKeyboard(rowsInline);
         sMessageObjButton.setReplyMarkup(markupInline);
-        execute(sMessageObjButton); // Sending our message object to user
+        execute(sMessageObjButton);
     }
 
     public void sendMessage(String message) throws TelegramApiException {
         SendMessage sendMessageObj = new SendMessage() // Create a SendMessage object with mandatory fields
                 .setChatId(chatId)
-                .setText(message);  //update.getMessage().getText()
-        //sendMessageObj.setReplyToMessageId(sendMessageObj.getReplyToMessageId()); //
+                .setText(message);
         execute(sendMessageObj);
     }
 
-    public void sendMessageInsteadButton(String message, long message_id) throws TelegramApiException {
+    public void sendMessageInsteadButton(String message, long messageId) throws TelegramApiException {
         EditMessageText new_message = new EditMessageText()
                 .setChatId(chatId)
-                .setMessageId(toIntExact(message_id))
+                .setMessageId(toIntExact(messageId))
                 .setText(message);
         execute(new_message);
     }
