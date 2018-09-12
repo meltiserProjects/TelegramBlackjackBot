@@ -13,6 +13,7 @@ public class Player {
 
     public Player() {
         initHand();
+        replaceAceCardIfBusted();
     }
 
     public void initHand() {

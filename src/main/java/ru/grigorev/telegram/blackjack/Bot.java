@@ -11,6 +11,7 @@ import org.telegram.telegrambots.meta.logging.BotLogger;
 import ru.grigorev.telegram.blackjack.gameLogic.Game;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -22,7 +23,7 @@ import static java.lang.Math.toIntExact;
 public class Bot extends TelegramLongPollingBot {
     private static final String LOGTAG = "BOT";
     private Long chatId;
-    private Map<Long, Game> usersMap;
+    private Map<Long, Game> usersMap = new HashMap<>();
     private Game game;
 
     @Override
@@ -36,10 +37,19 @@ public class Bot extends TelegramLongPollingBot {
     }
 
     private void handleCallBackQueryFromClient(Update update) {
+        setChatId(update.getCallbackQuery().getMessage().getChatId());
+        if (usersMap.containsKey(chatId)) {
+            this.game = usersMap.get(chatId);
+        } else {
+            Game gameForPlayer = new Game();
+            usersMap.put(update.getMessage().getChatId(), gameForPlayer);
+            this.game = gameForPlayer;
+        }
         long message_id = update.getCallbackQuery().getMessage().getMessageId();
         try {
             if (update.getCallbackQuery().getData().equals(Commands.NEW_GAME)) {
                 //sendMessageInsteadButton("Game is on!", message_id);
+                if (game == null) sendMessage("Type /start for a new game!");
                 sendMessage("Game is on!");
                 game.init(this);
             }
@@ -58,10 +68,16 @@ public class Bot extends TelegramLongPollingBot {
 
     private void handleMessagesFromClient(Update update) {
         setChatId(update.getMessage().getChatId()); // ???
+        if (usersMap.containsKey(chatId)) {
+            this.game = usersMap.get(chatId);
+        } else {
+            Game gameForPlayer = new Game();
+            usersMap.put(update.getMessage().getChatId(), gameForPlayer);
+            this.game = gameForPlayer;
+        }
         String receivedText = update.getMessage().getText();
         try {
             if (update.getMessage().getText().equals(Commands.START)) {
-                this.game = new Game();
                 sendMessageWithButton("Hello and welcome to BlackJack!" +
                                 " Type /newgame for a new game or simply push the button!",
                         "New game!",
@@ -69,10 +85,9 @@ public class Bot extends TelegramLongPollingBot {
             }
 
             if (receivedText.equals(Commands.NEW_GAME)) {
+                if (game == null) sendMessage("Type /start for a new game!");
                 game.init(this);
-                //usersMap.put(update.getMessage().getChatId(), game);
             }
-
             if (update.getMessage().getText().equals(Commands.HIT)) {
                 if (game.isRunning()) game.hit();
                 else sendNewGameButton();
