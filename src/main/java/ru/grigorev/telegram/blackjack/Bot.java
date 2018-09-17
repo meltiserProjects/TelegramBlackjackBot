@@ -1,5 +1,6 @@
 package ru.grigorev.telegram.blackjack;
 
+import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
@@ -25,6 +26,13 @@ public class Bot extends TelegramLongPollingBot {
     private Long chatId;
     private Game game;
     private Map<Long, Game> userGameMap = new HashMap<>();
+
+    public Bot(DefaultBotOptions options) {
+        super(options);
+    }
+
+    public Bot() {
+    }
 
     @Override
     public void onUpdateReceived(Update update) {
@@ -82,7 +90,7 @@ public class Bot extends TelegramLongPollingBot {
                 else sendNewGameButton();
             }
             if (receivedText.equals(Commands.STAT)) {
-                game.sendStat();
+                if (game != null) game.sendStat();
             }
         } catch (TelegramApiException e) {
             BotLogger.error(LOGTAG, e);
