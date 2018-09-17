@@ -1,6 +1,10 @@
 package ru.grigorev.telegram.blackjack;
 
+import org.apache.http.HttpHost;
+import org.apache.http.client.config.RequestConfig;
 import org.telegram.telegrambots.ApiContextInitializer;
+import org.telegram.telegrambots.bots.DefaultBotOptions;
+import org.telegram.telegrambots.meta.ApiContext;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.LongPollingBot;
@@ -20,13 +24,17 @@ public class Main {
 
     public static void main(String[] args) {
         loggerInitialization();
-        botInitialization();
+        botInitialization(true);
     }
 
-    private static void botInitialization() {
+    private static void botInitialization(boolean isWithProxy) {
         ApiContextInitializer.init();
-        bot = new Bot();
         TelegramBotsApi botsApi = new TelegramBotsApi();
+        if (isWithProxy) {
+            bot = new Bot(proxyInitialization());
+        } else {
+            bot = new Bot();
+        }
         try {
             BotLogger.info(LOGTAG, "Try initialization...");
             botsApi.registerBot(bot);
@@ -44,5 +52,19 @@ public class Main {
         } catch (IOException e) {
             BotLogger.severe(LOGTAG, e);
         }
+    }
+
+    private static DefaultBotOptions proxyInitialization() {
+        // to change proxy address see "Security" class
+        DefaultBotOptions botOptions = ApiContext.getInstance(DefaultBotOptions.class);
+
+        HttpHost httpHost = new HttpHost(Security.getProxyHost(), Security.getProxyPort());
+
+        RequestConfig requestConfig = RequestConfig.custom().setProxy(httpHost).setAuthenticationEnabled(false).build();
+        botOptions.setRequestConfig(requestConfig);
+        botOptions.setProxyHost(Security.getProxyHost());
+        botOptions.setProxyPort(Security.getProxyPort());
+        botOptions.setProxyType(DefaultBotOptions.ProxyType.HTTP);
+        return botOptions;
     }
 }
