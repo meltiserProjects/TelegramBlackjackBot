@@ -1,1 +1,1 @@
-worker: sh target/TelegramBlackjackBot
+worker: sh target/bin/TelegramBlackjackBot
