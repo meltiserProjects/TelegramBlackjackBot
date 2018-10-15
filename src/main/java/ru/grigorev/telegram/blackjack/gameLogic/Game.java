@@ -74,6 +74,11 @@ public class Game {
         telegramBot.sendMessage("Players win: " + playersWin + ", Bots win: " + botsWin);
     }
 
+    public void clearStat() {
+        botsWin = 0;
+        playersWin = 0;
+    }
+
     public void printPlayersHand(Player player) throws TelegramApiException {
         telegramBot.sendMessage(player.getStringHand());
     }

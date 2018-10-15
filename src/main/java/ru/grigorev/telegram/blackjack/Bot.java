@@ -77,6 +77,7 @@ public class Bot extends TelegramLongPollingBot {
                                 " Type /newgame for a new game or simply push the button!",
                         "New game!",
                         Commands.NEW_GAME);
+                if (game != null) game.clearStat();
             }
             if (receivedText.equals(Commands.NEW_GAME)) {
                 sendMessage("Game is on!");
@@ -92,6 +93,9 @@ public class Bot extends TelegramLongPollingBot {
             }
             if (receivedText.equals(Commands.STAT)) {
                 if (game != null) game.sendStat();
+            }
+            if (receivedText.equals(Commands.CLEAR_STAT)) {
+                if (game != null) game.clearStat();
             }
         } catch (TelegramApiException e) {
             BotLogger.error(LOGTAG, e);
