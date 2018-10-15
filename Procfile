@@ -1,1 +1,1 @@
-worker: sh target/TelegramBlackjackBot-1.0-SNAPSHOT
+worker: sh target/TelegramBlackjackBot-1.0-SNAPSHOT.jar

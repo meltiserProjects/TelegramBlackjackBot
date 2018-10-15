@@ -23,7 +23,7 @@ public class Main {
 
     public static void main(String[] args) {
         loggerInitialization();
-        botInitialization(false);
+        botInitialization(true);
     }
 
     private static void botInitialization(boolean isProxy) {
