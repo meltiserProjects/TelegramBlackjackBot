@@ -1,0 +1,1 @@
+worker: sh target/TelegramBlackjackBot-1.0-SNAPSHOT

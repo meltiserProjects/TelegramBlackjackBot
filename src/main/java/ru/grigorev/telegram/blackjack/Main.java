@@ -12,7 +12,6 @@ import org.telegram.telegrambots.meta.logging.BotLogger;
 import org.telegram.telegrambots.meta.logging.BotsFileHandler;
 
 import java.io.IOException;
-import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 
 /**
@@ -24,7 +23,7 @@ public class Main {
 
     public static void main(String[] args) {
         loggerInitialization();
-        botInitialization(true);
+        botInitialization(false);
     }
 
     private static void botInitialization(boolean isProxy) {
