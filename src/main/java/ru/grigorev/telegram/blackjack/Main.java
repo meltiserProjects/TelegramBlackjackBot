@@ -27,10 +27,10 @@ public class Main {
         botInitialization(true);
     }
 
-    private static void botInitialization(boolean isWithProxy) {
+    private static void botInitialization(boolean isProxy) {
         ApiContextInitializer.init();
         TelegramBotsApi botsApi = new TelegramBotsApi();
-        if (isWithProxy) {
+        if (isProxy) {
             bot = new Bot(proxyInitialization());
         } else {
             bot = new Bot();
@@ -46,7 +46,6 @@ public class Main {
 
     private static void loggerInitialization() {
         BotLogger.setLevel(Level.ALL);
-        BotLogger.registerLogger(new ConsoleHandler());
         try {
             BotLogger.registerLogger(new BotsFileHandler());
         } catch (IOException e) {

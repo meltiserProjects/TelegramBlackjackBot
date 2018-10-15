@@ -5,6 +5,6 @@
 *.class
 *.bat
 *.lst
-Security.java
+# Security.java
 *.log
 *.lck

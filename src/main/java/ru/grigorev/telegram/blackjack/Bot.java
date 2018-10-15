@@ -36,6 +36,7 @@ public class Bot extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(Update update) {
+        BotLogger.info(LOGTAG, "Update recieved");
         // check if the update has a message and the message has text
         if (update.hasMessage() && update.getMessage().hasText()) {
             handleMessagesFromClient(update);
