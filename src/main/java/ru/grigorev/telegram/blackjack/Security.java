@@ -4,8 +4,8 @@ package ru.grigorev.telegram.blackjack;
  * @author Dmitriy Grigorev
  */
 public final class Security {
-    private static final String BOT_USERNAME = "Simple_Blackjack_bot";
-    private static final String BOT_TOKEN = "587322702:AAFRYHaD_RjdyWw9UrB8i-pWqIlm7RLy25U";
+    private static final String BOT_USERNAME = "";
+    private static final String BOT_TOKEN = "";
     private static final String PROXY_HOST = "80.120.86.242";
     private static final Integer PROXY_PORT = 46771;
 
